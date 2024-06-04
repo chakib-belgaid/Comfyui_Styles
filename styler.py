@@ -1,4 +1,6 @@
 
+from util import *
+
 class Prompt_Styler:
     """
     A example node
@@ -31,6 +33,7 @@ class Prompt_Styler:
     style_names = ["candy", "mosaic", "rain_princess", "udnie", "wave", "la_muse", "scream", "the_shipwreck_of_the_minotaur", "the_great_wave_off_kanagawa", "the_starry_night", "the_scream", "the_kiss", "the_night_watch", "the_birth_of_venus", "the_creation_of_adam", "the_persistence_of_memory", "the_son"] 
     
     def __init__(self):
+        self.styles = read_all_files("styles")
         pass
     
     @classmethod
