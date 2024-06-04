@@ -1,24 +1,33 @@
-# Comfyui_style
+# ComfyUI Style Plugin
 
-A simple comfyui_pluging to importe A1111 csv styles into comfyui promot,
+This is a simple plugin for ComfyUI that allows you to import A1111 CSV styles into ComfyUI prompts.
 
-# how to use
-clone the repository in custom_nodes folder in comfyui
+## Installation
 
-to add new styles you can put the csv file or the json file into the styles folder in the repository
+To install the plugin, clone this repository into the `custom_nodes` folder in ComfyUI.
 
-Note : make sure that the positive promot in the style has **"{promot}"** init otherwise the prompt will be added at the end of the style
+## Adding New Styles
 
+To add new styles, place the CSV or JSON file into the `styles` folder in this repository.
 
-# nodes 
-promot_styler 
+**Note:** Ensure that the positive prompt in the style contains **"{prompt}"**. If it doesn't, the prompt will be appended at the end of the style.
 
-# example 
-![Example scenrio](https://raw.githubusercontent.com/chakib-belgaid/Comfyui_Styles/main/example.png)
+## Nodes
 
-#bugs 
+The plugin includes the following node:
 
-there is a visual bug where not all the buttons are visible, so just resize the box and it will be fixed 
+- `promot_styler`
 
-# credits 
-the styles are downloded from [dice repository](https://civitai.com/user/DiceAiDevelopment)
+## Example
+
+Here's an example of how to use the plugin:
+
+![Example scenario](https://raw.githubusercontent.com/chakib-belgaid/Comfyui_Prompt_styler/main/example.png)
+
+## Known Issues
+
+There is a visual bug where not all buttons are visible. To fix this, simply resize the box.
+
+## Credits
+
+The styles are downloaded from the [Dice repository](https://civitai.com/user/DiceAiDevelopment).
