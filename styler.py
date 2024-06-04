@@ -1,5 +1,6 @@
 
-from util import *
+from .util import *
+
 
 class Prompt_Styler:
     """
@@ -7,14 +8,14 @@ class Prompt_Styler:
 
     Class methods
     -------------
-    INPUT_TYPES (dict): 
+    INPUT_TYPES (dict):
         Tell the main program input parameters of nodes.
     IS_CHANGED:
         optional method to control when the node is re executed.
 
     Attributes
     ----------
-    RETURN_TYPES (`tuple`): 
+    RETURN_TYPES (`tuple`):
         The type of each element in the output tulple.
     RETURN_NAMES (`tuple`):
         Optional: The name of each output in the output tulple.
@@ -30,13 +31,13 @@ class Prompt_Styler:
         The entry point method. The name of this method must be the same as the value of property `FUNCTION`.
         For example, if `FUNCTION = "execute"` then this method's name must be `execute`, if `FUNCTION = "foo"` then it must be `foo`.
     """
-    style_names = ["candy", "mosaic", "rain_princess", "udnie", "wave", "la_muse", "scream", "the_shipwreck_of_the_minotaur", "the_great_wave_off_kanagawa", "the_starry_night", "the_scream", "the_kiss", "the_night_watch", "the_birth_of_venus", "the_creation_of_adam", "the_persistence_of_memory", "the_son"] 
-    
+    styles = load_all_styles()
+    style_names = ["default"]+list(styles.keys())
+
     def __init__(self):
-        self.styles = read_all_files("styles")
         pass
-    
-    @classmethod
+
+    @ classmethod
     def INPUT_TYPES(self):
         """
             Return a dictionary which contains config for all input fields.
@@ -55,20 +56,25 @@ class Prompt_Styler:
         return {
             "required": {
                 "clip": ("CLIP", {}),
-                "style": (self.style_names, {"default": "None"}),
+                "style_name": (self.style_names, {"label": "style", "default": "default"}),
                 "positive": ("STRING", {
-                    "multiline": True, #True if you want the field to look like the one on the ClipTextEncode node
-                    "default": ""
+                    # True if you want the field to look like the one on the ClipTextEncode node
+                    "multiline": True,
+                    "dynamicPrompts": True,
+                    "placeholder": "Enter positive prompt here"
+                }),
+                "enable_positive_style": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Apply style to positive prompt"
                 }),
                 "negative": ("STRING", {
                     "multiline": True,
-                    "default": "",
+                    "dynamicPrompts": True,
+                    "placeholder": "Enter negative prompt here"
                 }),
-                "postive_style":("BOOL",{
-                    "default": True
-                }),
-                "negative_style":("BOOL",{
-                    "default": True
+                "enable_negative_style": ("BOOLEAN", {
+                    "default": True,
+                    "tooltip": "Apply style to negative prompt"
                 }),
             },
             "optional": {
@@ -81,45 +87,50 @@ class Prompt_Styler:
             }
         }
 
-    RETURN_TYPES = ("CONDITIONING","CONDITIONING","STRING","STRING")
-    RETURN_NAMES = ("positive","negative","positive","negative")
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "STRING", "STRING")
+    RETURN_NAMES = ("positive", "negative", "positive", "negative")
 
     FUNCTION = "apply_style"
 
-    #OUTPUT_NODE = False
+    # OUTPUT_NODE = False
 
-    CATEGORY = "Example"
+    CATEGORY = "Prompt Styler"
 
     def encode(self, clip, text):
         tokens = clip.tokenize(text)
         cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
-        return ([[cond, {"pooled_output": pooled}]], )
-    
-    def test(self,clip, style, positive, negative, postive_style, negative_style, positive_1, negative_1):
+        return ([[cond, {"pooled_output": pooled}]])
 
+    def apply_style(self, clip, positive, negative, enable_positive_style, enable_negative_style, style_name="default", positive_1=None, negative_1=None):
 
-    """
-        The node will always be re executed if any of the inputs change but
-        this method can be used to force the node to execute again even when the inputs don't change.
-        You can make this node return a number or a string. This value will be compared to the one returned the last time the node was
-        executed, if it is different the node will be executed again.
-        This method is used in the core repo for the LoadImage node where they return the image hash as a string, if the image hash
-        changes between executions the LoadImage node is executed again.
-    """
-    #@classmethod
-    #def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):
+        positive_prompt = positive_1+", "+positive if positive_1 else positive
+        negative_prompt = negative_1+", "+negative if negative_1 else negative
+        if enable_positive_style and style_name != "default":
+            positive_prompt = self.styles[style_name]["positive"].replace(
+                '{prompt}', "of "+positive_prompt)
+        if enable_negative_style and style_name != "default":
+            negative_prompt = negative_prompt+", " + \
+                self.styles[style_name]["negative"]
+        positive_cond = self.encode(clip, positive_prompt)
+        negative_cond = self.encode(clip, negative_prompt)
+
+        return (positive_cond, negative_cond, positive_prompt, negative_prompt)
+
+    # @classmethod
+    # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):
     #    return ""
 
 # Set the web directory, any .js file in that directory will be loaded by the frontend as a frontend extension
 # WEB_DIRECTORY = "./somejs"
 
+
 # A dictionary that contains all nodes you want to export with their names
 # NOTE: names should be globally unique
 NODE_CLASS_MAPPINGS = {
-    "Example": Example
+    "Prompt_Styler": Prompt_Styler
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "Example": "Example Node"
+    "Prompt_Styler": "Prompt Styler"
 }
