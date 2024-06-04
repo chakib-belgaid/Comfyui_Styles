@@ -1,4 +1,3 @@
-
 from .util import *
 
 
@@ -32,33 +31,32 @@ class Prompt_Styler:
         For example, if `FUNCTION = "execute"` then this method's name must be `execute`, if `FUNCTION = "foo"` then it must be `foo`.
     """
     styles = load_all_styles()
-    style_names = ["default"]+list(styles.keys())
+    style_names = ["default"] + list(styles.keys())
 
     def __init__(self):
         pass
 
-    @ classmethod
-    def INPUT_TYPES(self):
+    @classmethod
+    def INPUT_TYPES(cls):
         """
-            Return a dictionary which contains config for all input fields.
-            Some types (string): "MODEL", "VAE", "CLIP", "CONDITIONING", "LATENT", "IMAGE", "INT", "STRING", "FLOAT".
-            Input types "INT", "STRING" or "FLOAT" are special values for fields on the node.
-            The type can be a list for selection.
+        Return a dictionary which contains config for all input fields.
+        Some types (string): "MODEL", "VAE", "CLIP", "CONDITIONING", "LATENT", "IMAGE", "INT", "STRING", "FLOAT".
+        Input types "INT", "STRING" or "FLOAT" are special values for fields on the node.
+        The type can be a list for selection.
 
-            Returns: `dict`:
-                - Key input_fields_group (`string`): Can be either required, hidden or optional. A node class must have property `required`
-                - Value input_fields (`dict`): Contains input fields config:
-                    * Key field_name (`string`): Name of a entry-point method's argument
-                    * Value field_config (`tuple`):
-                        + First value is a string indicate the type of field or a list for selection.
-                        + Secound value is a config for type "INT", "STRING" or "FLOAT".
+        Returns: `dict`:
+            - Key input_fields_group (`string`): Can be either required, hidden or optional. A node class must have property `required`
+            - Value input_fields (`dict`): Contains input fields config:
+                * Key field_name (`string`): Name of a entry-point method's argument
+                * Value field_config (`tuple`):
+                    + First value is a string indicate the type of field or a list for selection.
+                    + Second value is a config for type "INT", "STRING" or "FLOAT".
         """
         return {
             "required": {
                 "clip": ("CLIP", {}),
-                "style_name": (self.style_names, {"label": "style", "default": "default"}),
+                "style_name": (cls.style_names, {"label": "style", "default": "default"}),
                 "positive": ("STRING", {
-                    # True if you want the field to look like the one on the ClipTextEncode node
                     "multiline": True,
                     "dynamicPrompts": True,
                     "placeholder": "Enter positive prompt here"
@@ -99,25 +97,29 @@ class Prompt_Styler:
     def encode(self, clip, text):
         tokens = clip.tokenize(text)
         cond, pooled = clip.encode_from_tokens(tokens, return_pooled=True)
-        return ([[cond, {"pooled_output": pooled}]])
+        return [[cond, {"pooled_output": pooled}]]
 
     def apply_style(self, clip, positive, negative, enable_positive_style, enable_negative_style, style_name="default", positive_1=None, negative_1=None):
-
-        positive_prompt = positive_1+", "+positive if positive_1 else positive
-        negative_prompt = negative_1+", "+negative if negative_1 else negative
+        positive_prompt = positive_1 + ", " + positive if positive_1 else positive
+        negative_prompt = negative_1 + ", " + negative if negative_1 else negative
         if enable_positive_style and style_name != "default":
-            positive_prompt = self.styles[style_name]["positive"].replace(
-                '{prompt}', "of "+positive_prompt)
+            if "{prompt}" in self.styles[style_name]["positive"]:
+                positive_prompt = self.styles[style_name]["positive"].replace(
+                    '{prompt}', "of " + positive_prompt)
+            else:
+                positive_prompt = self.styles[style_name]["positive"] + \
+                    ", " + positive_prompt
+
         if enable_negative_style and style_name != "default":
-            negative_prompt = negative_prompt+", " + \
+            negative_prompt = negative_prompt + ", " + \
                 self.styles[style_name]["negative"]
         positive_cond = self.encode(clip, positive_prompt)
         negative_cond = self.encode(clip, negative_prompt)
 
-        return (positive_cond, negative_cond, positive_prompt, negative_prompt)
+        return positive_cond, negative_cond, positive_prompt, negative_prompt
 
     # @classmethod
-    # def IS_CHANGED(s, image, string_field, int_field, float_field, print_to_screen):
+    # def IS_CHANGED(cls, image, string_field, int_field, float_field, print_to_screen):
     #    return ""
 
 # Set the web directory, any .js file in that directory will be loaded by the frontend as a frontend extension
