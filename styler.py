@@ -1,7 +1,4 @@
 
-
-
-
 class Prompt_Styler:
     """
     A example node
