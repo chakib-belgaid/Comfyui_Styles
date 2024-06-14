@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_prompt_styler"
+description = "This is a simple plugin for ComfyUI that allows you to import A1111 CSV styles into ComfyUI prompts."
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/chakib-belgaid/Comfyui_Prompt_styler"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "Comfyui_Prompt_styler"
+Icon = ""
